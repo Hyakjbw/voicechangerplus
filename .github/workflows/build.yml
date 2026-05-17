@@ -1,0 +1,35 @@
+name: Build Rootless Tweak
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:   # cho phép chạy thủ công
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential perl curl git libplist-dev libplist++-dev zlib1g-dev
+
+      - name: Setup Theos
+        uses: theos/theos-action@v1
+        with:
+          theos-ref: master
+
+      - name: Build tweak (rootless)
+        run: |
+          export THEOS_PACKAGE_SCHEME=rootless
+          make clean
+          make package FINALPACKAGE=1
+
+      - name: Upload .deb artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VoiceChangerPlus-deb
+          path: packages/*.deb
